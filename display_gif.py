@@ -1,4 +1,4 @@
-"""Displays an animated gif on a 32x32 RGB LED Adafruit Matrix."""
+"""Displays an animated gif on a 64x64 RBG (not RGB!) LED Adafruit Matrix."""
 
 import argparse
 from pathlib import Path
@@ -12,7 +12,13 @@ def get_frames(path):
     frames = []
     with Image.open(path) as gif:
         for frame in ImageSequence.Iterator(gif):
-            frame = frame.convert('RGB').resize((32, 32))
+            frame = frame.convert('RGB').resize((64,64)) # 64x64 matrix
+            # GS: Re-arrange R, G, B for compatibility with Adafruit 64x64 matrix
+            rgb = frame.split()
+            r = rgb[0]
+            g = rgb[1]
+            b = rgb[2]
+            frame = Image.merge('RGB',(r,b,g)) # RBG
             frames.append(frame)
         return frames
 
@@ -20,7 +26,8 @@ def get_frames(path):
 def display_gif(path):
     """Displays gif frames on matrix."""
     options = RGBMatrixOptions()
-    options.rows = 32
+    options.rows = 64
+    options.cols = 64
     options.chain_length = 1
     options.parallel = 1
     options.hardware_mapping = 'adafruit-hat'
